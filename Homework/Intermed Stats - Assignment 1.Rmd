@@ -1,0 +1,291 @@
+---
+title: "Assignment 1"
+author: "Haukur Bjornsson"
+date: "February 27, 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = T, tidy=T, tidy.opts=list(width.cutoff=60))
+```
+
+```{r}
+library(MASS)
+data(cats)
+```
+
+### Question 1
+
+a.
+
+If 	\(X^TX\) is not invertible then it isn't linearly independent. If it isn't linearly independent then there will be infinitely many solutions and therefore no unique least squares estimate exists. Thus \(X^TX\) has to be invertible for there to exist a unique estimate. 
+
+b.
+
+As an example lets say we have 4 points, \((1,n_1), (1,n_2), (2,n_3),(3,n_4)\).
+This generates the following matrix X.
+\[X=
+  \begin{bmatrix}
+    1 & 1 & 0 & 0 \\
+    1 & 1 & 0 & 0 \\
+    1 & 0 & 1 & 0 \\
+    1 & 0 & 0 & 1 \\
+  \end{bmatrix}\]
+
+If we then calculate \(X^TX\) we get
+\[X^TX=
+  \begin{bmatrix}
+    1 & 1 & 1 & 1 \\
+    1 & 1 & 0 & 0 \\
+    0 & 0 & 1 & 0 \\
+    0 & 0 & 0 & 1 \\
+  \end{bmatrix}
+  \begin{bmatrix}
+    1 & 1 & 0 & 0 \\
+    1 & 1 & 0 & 0 \\
+    1 & 0 & 1 & 0 \\
+    1 & 0 & 0 & 1 \\
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    4 & 2 & 1 & 1 \\
+    2 & 2 & 0 & 0 \\
+    1 & 0 & 1 & 0 \\
+    1 & 0 & 0 & 1 \\
+  \end{bmatrix}
+  \]
+
+Which can be generalized to be
+\[X^TX=
+  \begin{bmatrix}
+    N & n_1 & n_2 & n_3 \\
+    n_1 & n_1 & 0 & 0 \\
+    n_2 & 0 & n_2 & 0 \\
+    n_3 & 0 & 0 & n_3 \\
+  \end{bmatrix}\]
+
+Since \(X^TX\) can always be row reduced to 
+\[
+  \begin{bmatrix}
+    0 & 0 & 0 & 0 \\
+    0 & 1 & 0 & 0 \\
+    0 & 0 & 1 & 0 \\
+    0 & 0 & 0 & 1 \\
+  \end{bmatrix}\] 
+
+it will never be invertible. Since it doesn't have a full rank it isn't linearly independent and therefore won't be invertible as it's determinant will always be 0.
+
+c.
+
+Removing any of columns 2, 3 or 4 from the matrix X above will result in a generalized matrix 
+\[X^TX=
+  \begin{bmatrix}
+    N & n_1 & n_2 \\
+    n_1 & n_1 & 0 \\
+    n_2 & 0 & n_2 \\
+  \end{bmatrix}\]
+where \(N = n_1 + n_2 + n_3\), and will therefore row reduce to the identity matrix.
+Removing the first column from matrix X would result in a matrix \(X^TX\) that would row reduce to the identity matrix as the first row would obviously become a row of 0's.
+Therefore, if any of the terms associated with the coefficients are removed from matrix X the resulting matrix \(X^TX\) will be invertible.
+
+d.
+
+We have \(y=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3\), where \(\{x_1,x_2,x_3\} \in \{0,1\}\) and \(x_1+x_2+x_3=1\).
+
+Case 1: WLOG remove \(\beta_1\) 
+
+Then \(y=\beta'_0+\beta'_2x_2+\beta'_3x_3\), where \(\beta'_0=\beta_0+\beta_1, \hspace*{2mm} \beta'_2=\beta_2-\beta_1, \hspace*{2mm}\beta'_3=\beta_3-\beta_1\)
+
+Case 2: remove \(\beta_0\)
+
+Then \(y=\beta'_1x_1+\beta'_2x_2+\beta'_3x_3\), where \(\beta'_1=\beta_1+\beta_0, \hspace*{2mm} \beta'_2=\beta_2+\beta_0, \\ \beta'_3=\beta_3+\beta_0\)
+
+Since the new coefficients for y after removing a factor can always be written as linear combinations of the old coefficients, they span the same space and are therefore equivalent.
+
+### Question 2
+
+a.
+
+\(\beta'_0=-\beta_0/\beta_1\) and \(\beta'_1=1/\beta_1\)
+
+b.
+```{r}
+lm1 <-lm(cats$Hwt ~ cats$Bwt)
+b0 <- summary(lm1)$coefficients[1,1]
+b1 <- summary(lm1)$coefficients[2,1]
+```
+
+```{r}
+lm2 <- lm(cats$Bwt ~ cats$Hwt)
+b0p <- summary(lm2)$coefficients[1,1]
+b1p <- summary(lm2)$coefficients[2,1]
+```
+
+```{r}
+plot(cats$Bwt, cats$Hwt)
+abline(b0, b1, col="red")
+abline(-b0p/b1p,1/b1p, col="blue")
+legend(2.2,17, legend=c("Hwt ~ Bwt", "Bwt ~ Hwt"), col=c("red", "blue"), lty=1)
+```
+If the equivalence relation from part a held, then the two lines would be the same. Since they clearly aren't the same line, then the relation doesn't hold.
+
+c.
+```{r}
+fit <- lm(cats$Hwt ~ cats$Bwt)
+fit1 <- lm(cats$Hwt ~ cats$Bwt + cats$Sex)
+fit2 <- lm(cats$Hwt ~ cats$Bwt * cats$Sex)
+```
+
+
+```{r}
+a0 <- summary(fit)$coefficients[1,1]
+a1 <- summary(fit)$coefficients[2,1]
+plot(cats$Bwt, cats$Hwt, main="Model 1 Plot")
+abline(a0, a1)
+```
+
+
+```{r}
+b0 <- summary(fit1)$coefficients[1,1]
+b1 <- summary(fit1)$coefficients[2,1]
+bvar <- summary(fit1)$coefficients[3,1]
+plot(cats$Bwt, cats$Hwt, main='Model 2 Plot')
+abline(b0, b1, col="red")
+abline(b0+bvar, b1, col="blue")
+legend(2.2,17, legend=c("Female", "Male"), col=c("red", "blue"), lty=1)
+```
+
+
+```{r}
+c0 <- summary(fit2)$coefficients[1,1]
+c1 <- summary(fit2)$coefficients[2,1]
+c2 <- summary(fit2)$coefficients[3,1]
+c3 <- summary(fit2)$coefficients[4,1]
+plot(cats$Bwt, cats$Hwt, main="Model 3 Plot")
+abline(c0+c2, c1+c3, col="blue")
+abline(c0, c1, col="red")
+legend(2.2,17, legend=c("Female", "Male"), col=c("red", "blue"), lty=1)
+```
+
+
+d.
+```{r}
+anova(fit, fit1)
+```
+With a p-value above 0.05 we fail to reject the null hypothesis and cannot conclude that Model 2 improves Model 1.
+
+```{r}
+anova(fit, fit2)
+```
+With a p-value above 0.05 we fail to reject the null hypothesis and cannot conclude that Model 3 improves Model 1.
+
+
+### Question 3
+
+a.
+
+```{r}
+data('Insurance')
+
+ins1 <- lm(Insurance$Claims ~ Insurance$District + Insurance$Group + Insurance$Age + Insurance$Holders)
+plot(ins1, which=1:2)
+```
+The usual assumptions are not reasonable since the residual plot implies that homoscedasticity is not present. The QQ plot shows that the standardized residuals are close to normally distributed aside from the tail ends.
+
+
+b.
+
+a=0 does not work because one instance of claims is 0, and log(0) does not exist.
+
+```{r}
+lma1 <- lm(log(Insurance$Claims+1) ~ Insurance$District + Insurance$Group + Insurance$Age + Insurance$Holders)
+plot(lma1, which=1:2)
+```
+
+
+```{r}
+lma10 <- lm(log(Insurance$Claims+10) ~ Insurance$District + Insurance$Group + Insurance$Age + Insurance$Holders)
+plot(lma10, which=1:2)
+```
+Of the two, a=10 normalizes much better than a=1. This is best seen in the normal QQ plot which looks much better for a=10. a=1 actually looks worse than without the log transformed data. The residual plots are more similar but a=10 better still, since the points are more uniformily distributed around 0.
+
+
+c.
+
+4c0 + 4c1 + 4c2 + 4c3 + 4c4 = 1 + 4 + 6 + 4 + 1 = 16
+
+
+d.
+```{r}
+themodel <- lm(log(Claims+10) ~ ., data=Insurance)
+full.formula <- formula(terms(themodel))
+
+combs <- c(full.formula, update(full.formula, ~ . -Group), update(full.formula, ~ . -Holders), update(full.formula, ~ . -District), update(full.formula, ~ . -Age), update(full.formula, ~ . -Group-Age), update(full.formula, ~ . -Group-Holders), update(full.formula, ~ . -Group-District), update(full.formula, ~ . -Age-Holders), update(full.formula, ~ . -Age-District), update(full.formula, ~ . -Holders-District), update(full.formula, ~ . -Group-Age-Holders), update(full.formula, ~ . -Group-Age-District), update(full.formula, ~ . -Group-Holders-District), update(full.formula, ~ . -Age-Holders-District), update(full.formula, ~ . -Group-Age-Holders-District))
+
+Rsq <- list()
+for (i in combs){
+  x <- summary(lm(i, data=Insurance))$adj.r.squared
+  Rsq <- c(Rsq, x)
+  
+}
+max_rsq <- max(sapply(Rsq,max))
+max_rsq
+index <- match(max_rsq, Rsq)
+print(combs[index])
+```
+The first model, which has all the variables has the largest R-squared adjusted value of 0.944299.
+
+
+### Question 4
+
+a.
+```{r}
+xMat <- matrix(nrow = nrow(cats), ncol=4)
+xMat[,1] <- rep(1,nrow(xMat))
+xMat[,2] <- cats$Bwt
+xMat[,3] <- sapply(cats$Sex == 'M', as.numeric)
+xMat[,4] <- cats$Bwt*xMat[,3]
+
+a <- function(x){return(matrix(c(0,0,1,x), nrow=4, ncol=1))}
+
+sigN <- function(x){return(sqrt(MSE*t(a(x))%*%solve(t(xMat)%*%xMat)%*%a(x)))}
+MSE <- sum((fit2$residuals)^2)/(nrow(cats)-4)
+
+tStat <- function(x){
+  (coef(fit2)[[3]] + coef(fit2)[[4]]*x) / sigN(x)
+}
+
+x <- seq(0,5,by=0.1)
+
+v <- c()
+counter <- 1
+for (i in x) {
+  v[counter] <- tStat(i)
+  counter <- counter+1
+}
+
+plot(x,v, main = 'Observed t-statistics', ylab="t-statistic")
+
+```
+The plot appears to be bounded over all x with an upper bound around 2 and a lower bound around -2.
+
+b.
+```{r}
+tStat(3.5)
+```
+t-statistic is 1.8094
+
+```{r}
+2*(1-pt(tStat(3.5),97+47-2))
+```
+p-value is 0.0725
+As seen in question 2d Model3 did not improve Model1. 
+Although, as seen above the p-value for 3.5 is 0.0725. Therefore we reject the null hypothesis of the difference of the means being 0 for 3.5. Which implies that sex matters, at least for some values.
+
+c.
+```{r}
+boolList <- abs(v) > sqrt(qchisq(.9, 4))
+
+sum(boolList)/length(v)
+```
+We cannot reject any of the hypotheses as their chi-squared critical value is more extreme than their t-statistic. This implies that Model 3 does not improve Model 1 at a significance level of 0.1, like we concluded in Question 2. This shows that the answer in part B is a problem, and that one should not conclude that Model 3 improves Model 1 based on individual values.

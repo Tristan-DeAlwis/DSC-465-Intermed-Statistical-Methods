@@ -1,0 +1,142 @@
+---
+title: 'Assignment #2: R code'
+author: "Tristan De Alwis"
+date: "4/16/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=T, eval=T, tidy=T)
+tidy.opts=list(width.cutoff=40)
+```
+
+# Loading Neccessary Libraries
+```{r}
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library('Rlab'))
+suppressPackageStartupMessages(library(class))
+```
+
+
+
+# Q3
+```{r}
+carsb = Cars93[,c(4,5,6,7,8,12,13,14,15,17,19:22,25,26)]
+names(carsb)
+carsb[,-16] = log(carsb[,-16])
+```
+
+## (a)
+```{r}
+lrfp = function(m) { (m[1,1]/(m[1,1]+m[2,1]))/(m[1,2]/(m[2,2]+m[1,2])) }
+lrfn = function(m) { (m[2,1]/(m[1,1]+m[2,1]))/(m[2,2]/(m[2,2]+m[1,2])) }
+f0 = function(m) {c(1-sum(diag(m))/sum(m),lrfp(m),lrfn(m))}
+
+```
+
+
+## (b)
+```{r}
+fit.lda= lda(Origin ~ .,
+             data=carsb)
+
+confusion.matrix.lda = table(predict(fit.lda)$class,carsb$Origin)
+
+m = confusion.matrix.lda
+
+vector = f0(m)
+cat("CE:  ", vector[1], '\n')
+cat("LR+: ", vector[2], '\n')
+cat("LR-: ", vector[3], '\n')
+```
+
+
+## (c)
+```{r}
+fit.qda = qda(Origin ~ .,
+             data=carsb)
+
+confusion.matrix.qda = table(predict(fit.qda)$class,carsb$Origin)
+
+m = confusion.matrix.qda
+
+vector = f0(m)
+cat("CE:  ", vector[1], '\n')
+cat("LR+: ", vector[2], '\n')
+cat("LR-: ", vector[3], '\n')
+```
+### Yes, the QDA appears to produce less error
+
+
+## (d)
+```{r}
+fit.lda= lda(Origin ~ .,
+             data=carsb,
+             CV = TRUE)
+
+confusion.matrix.lda = table(fit.lda$class,carsb$Origin)
+
+m = confusion.matrix.lda
+
+vector = f0(m)
+cat("CE:  ", vector[1], '\n')
+cat("LR+: ", vector[2], '\n')
+cat("LR-: ", vector[3], '\n\n')
+
+fit.qda = qda(Origin ~ .,
+             data=carsb,
+             CV = TRUE)
+
+confusion.matrix.qda = table(fit.qda$class,carsb$Origin)
+
+m = confusion.matrix.qda
+
+vector = f0(m)
+cat("CE:  ", vector[1], '\n')
+cat("LR+: ", vector[2], '\n')
+cat("LR-: ", vector[3], '\n')
+```
+#### lda() does better than qda() with CV because it is better at generalizing
+
+# Q4
+```{r}
+pima1 = rbind(Pima.tr)[,c(2,3,4,5,6,8)]
+names(pima1)
+```
+
+
+## (a)
+```{r}
+yes = length(which(pima1$type == 'Yes'))
+yes <- yes/200
+cat('yes: ', yes, '\n')
+
+no = length(which(pima1$type == 'No'))
+no <- no/200
+cat('no:  ', no, '\n')
+```
+### The classifier would be incorrect 34% of the time.
+
+## (b)
+```{r}
+
+```
+
+
+## (c)
+```{r}
+
+```
+
+
+## (d)
+```{r}
+# norm_feat <- apply(pima1[-6], 2, function(x) { return((mean(x))/sd(x)) } )
+# knn_mat <- knn_func(k.list, norm_feat, pima1[,6])
+# plot(seq(1, 125, 2), knn_mat[,1], pch=16, ylab='Classification Error', xlab = 'K', +
+#   main = 'Normalized Features')
+# lines(seq(1, 125, 2), knn_mat[,1], lty=1)
+# abline(h = 0.34, lty = 2, lwd = 3, col = 'dark blue')
+```
+### Can't divide by 0 so can't give an estimatre
